@@ -21,7 +21,7 @@ fontsize: 11pt
 
 # Contenido
 
-1. Introducción  
+1. Introducción  :) 
 2. Interfaces y datos  
 3. Derechos de voto  
 4. De comparaciones a puntuaciones individuales  
