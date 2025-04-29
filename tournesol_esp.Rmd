@@ -1,0 +1,225 @@
+---
+title: "Tournesol: Permissionless Collaborative Algorithmic Governance with Security Guarantees"
+shorttitle: "Tournesol"
+author: |
+  Lê Nguyên Hoang\textsuperscript{1,2}, Romain Beylerian\textsuperscript{2}, Bérangère Colbois\textsuperscript{3}, Julien Fageot\textsuperscript{2,3},  
+  Louis Faucon\textsuperscript{2}, Aidan Jungo\textsuperscript{2}, Alain Le Noac’h\textsuperscript{2}, Adrien Matissart\textsuperscript{2}, Oscar Villemaud\textsuperscript{2,3}
+shortauthor: "L. N. Hoang et al."
+institute: |
+  \textsuperscript{1}Calicarpa  
+  \textsuperscript{2}Tournesol Association  
+  \textsuperscript{3}EPFL
+date: "August 16, 2023"
+theme: "Warsaw"
+colortheme: "whale"
+output: beamer_presentation
+navigation: horizontal
+fontsize: 11pt
+---
+
+---
+
+# Contenido
+
+1. Introducción  
+2. Interfaces y datos  
+3. Derechos de voto  
+4. De comparaciones a puntuaciones individuales  
+5. Escalado colaborativo de puntuaciones  
+6. Ajustes finales de las puntuaciones  
+7. Conclusión
+
+---
+
+# 1. Introducción
+
+- Los algoritmos de gran escala tienen un papel político crucial, moldeando narrativas públicas y geopolíticas.  
+*(Chesney & Citron 2019; Woolley 2020; Garon 2022)*
+
+- Sin embargo, estos sistemas carecen de regulación y transparencia.  
+*(Hagey & Horwitz 2023; Hoang 2020)*
+
+---
+
+# 1.1 Formulación del problema
+
+- Queremos definir una función $f$ que transforme los datos de $N$ cuentas en una puntuación \( \rho \) sobre un conjunto de alternativas.
+
+- En sistemas **abiertos**, el reto es evitar que usuarios maliciosos manipulen el resultado.  
+**Solución**: **Resiliencia Lipschitz**. *(Allouah et al. 2022)*
+
+---
+
+# 1.2 Contribuciones
+
+- Propuesta de un pipeline seguro y colaborativo para gobernanza algorítmica sin permisos.
+
+- Introducción de **LipschiTrust** para propagar confianza de forma segura.
+
+- Despliegue exitoso en **tournesol.app** (137,000 comparaciones, 7,000 contribuyentes).
+
+---
+
+# 1.3 Trabajo relacionado
+
+- Tournesol combate riesgos de **desinformación**, **radicalización** y **salud mental** en redes sociales.
+
+- Extiende trabajos como **WeBuildAI** y **EigenTrust**, aplicados a recomendaciones seguras y colaborativas.  
+*(Lee et al. 2019; Kamvar et al. 2003)*
+
+---
+
+# 2. Interfaces y datos
+
+- Se recopilan dos tipos de datos:  
+  **(1)** Verificación/autenticación de usuarios.  
+  **(2)** Comparaciones de contenido.
+
+---
+
+# 2.1 Red de avales (Vouch Network)
+
+- Se asigna **preconfianza** si el correo pertenece a un dominio "resiliente" (ej., `@epfl.ch`).
+
+- Los usuarios pueden **avalar** a otros para aumentar inclusión (**Proof of Personhood**).
+
+---
+
+# 2.2 Comparaciones
+
+- Se registran tuplas \((n,a,b,q,r)\), donde $r$ mide la preferencia entre $a$ y $b$.
+
+- Las comparaciones son **anti-simétricas** y se representa en una matriz \( r_{ab} \).
+
+---
+
+# 2.3 Privacidad
+
+- Se permite votar **privadamente**.
+
+- Solo las comparaciones **públicas** forman parte de los datasets accesibles.
+
+- Actualmente, **no se aplica privacidad diferencial** *(agosto 2023)*.
+
+---
+
+# 3. Derechos de voto
+
+- Se asignan derechos de voto usando **puntajes de confianza** basados en avales y verificaciones.
+
+- La metodología asegura resistencia a ataques tipo **Sybil**.
+
+---
+
+# 3.1 Cómputo de confianza: LipschiTrust
+
+- Inspirado en **EigenTrust** y **PageRank**: modela caminatas aleatorias sobre la red de avales.
+
+- Reseteo frecuente y limitación de visitas evitan acumulación de poder.
+
+---
+
+### Proposition 1
+
+There exists a unique trust vector such that $\|\text{tr}_t - \text{trust}\|_1 \leq |N|\beta^t$ for all $t$.  
+Moreover, $\text{trust} = \min(\text{trust}^{\text{pre}} + \beta V^T \text{trust}, 1)$.
+
+### Theorem 1
+
+If $\text{trust}^{-n}$ is the trust after removing contributor $n$'s vouches, then:  
+$$
+\|\text{trust} - \text{trust}^{-n}\|_1 \leq \frac{\beta}{1 - \beta} \text{trust}^{-n}_n
+$$
+
+### Proposition 2
+
+**Vouching cannot decrease trust**: for all contributors $n$,  
+$$
+\text{trust} \geq \text{trust}^{-n}
+$$
+
+### Proposition 3
+
+A contributor’s trust score is **positive** if and only if there is a **vouch path** from a pretrusted contributor to them.
+
+---
+
+# 3.2 Contribuyentes calibradores
+
+- Se selecciona un subconjunto activo y confiable para calibrar escalas de puntuación.
+
+- **$K_{\text{scaling}} = 100$**, **$\text{trust}^{\text{scaling}}_{\min} = 0.1$**.
+
+---
+
+# 3.3 Derechos de voto en agregación
+
+- Incluso usuarios con confianza cero tienen voto positivo \( w^n_a > 0 \).
+
+- Penalización por respuestas privadas: \( w^{\text{penalty}}_{\text{private}} = 0.5 \).
+
+- Se controla "sobreconfianza" \( \text{OverTrust}_a \) mediante umbrales.
+
+---
+
+# 4 De comparaciones a puntuaciones individuales
+
+- Se normalizan comparaciones en **scores crudos** \( \tilde{r}_{ab} \in [-1,1] \).
+
+- Se modela mediante un **modelo generalizado Bradley-Terry**.
+
+---
+
+## Proposition 4: Monotonicity of Raw Scores
+
+The raw scores $\theta^{\text{raw}}(\tilde{r})$ are **monotonic** with respect to the contributor's comparisons:  
+better comparisons for $a$ lead to higher $\theta^{\text{raw}}_a$.
+
+## Computing Uncertainty
+
+- To estimate score **uncertainty**, Tournesol evaluates the **curvature** of the loss around $\theta^{\text{raw}}$.
+
+- Specifically, it computes the second derivative (Hessian diagonal ignoring regularization):  
+  $$
+  \Delta \theta^{\text{raw}}_a = \left( - \sum_{b : (a,b) \in AB} \frac{\partial^2}{\partial \theta_a^2} \ln p[r_{ab}|\theta^{\text{raw}}] \right)^{-1/2}
+  $$
+
+- Higher uncertainty reduces a contributor's influence on aggregated global scores.
+
+---
+
+# 5 Escalado colaborativo
+
+- Usuarios califican diferentes subconjuntos: necesidad de **escalar colaborativamente**.
+
+- Uso adaptado de **Mehestan** (Allouah et al. 2022) con robustecimientos.
+
+---
+
+# 6 Ajustes finales de las puntuaciones
+
+## 6.1 Estandarización
+
+- Escalado robusto usando el **90% quantile** de desviaciones (**QrQtl**).
+
+## 6.2 Corrimiento del cero
+
+- Se corrige para que alternativas no evaluadas caigan en el **15% inferior**.
+
+## 6.3 Agregación
+
+- Se usa **mediana robusta (QrMed)** para agregación final de puntuaciones.
+
+## 6.4 Aplastamiento de puntuaciones
+
+- Se lleva a escala \((-100,100)\) usando: \( x \mapsto 100 \frac{x}{\sqrt{1+x^2}} \).
+
+---
+
+# 7 Conclusión
+
+- Presentamos un sistema de gobernanza algorítmica **abierto, seguro y colaborativo**, ya desplegado en **tournesol.app**.
+
+- Futuras mejoras incluyen: aprendizaje de voluntades, integración de expertise, liquid democracy y alineación de modelos de lenguaje.
+
+- Buscamos fomentar sistemas **justos, interpretables y escalables**.
