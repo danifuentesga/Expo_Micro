@@ -1,0 +1,361 @@
+---
+title: "Tournesol: Permissionless Collaborative Algorithmic Governance with Security Guarantees"
+shorttitle: "Tournesol"
+author: |
+  Lê Nguyên Hoang\textsuperscript{1,2}, Romain Beylerian\textsuperscript{2}, Bérangère Colbois\textsuperscript{3}, Julien Fageot\textsuperscript{2,3},  
+  Louis Faucon\textsuperscript{2}, Aidan Jungo\textsuperscript{2}, Alain Le Noac’h\textsuperscript{2}, Adrien Matissart\textsuperscript{2}, Oscar Villemaud\textsuperscript{2,3}
+shortauthor: "L. N. Hoang et al."
+institute: |
+  \textsuperscript{1}Calicarpa  
+  \textsuperscript{2}Tournesol Association  
+  \textsuperscript{3}EPFL
+date: "August 16, 2023"
+theme: "Warsaw"
+colortheme: "whale"
+output: beamer_presentation
+navigation: horizontal
+fontsize: 11pt
+
+---
+
+---
+
+# Outline
+
+1. Introduction  
+2. Interfaces and data  
+3. Voting rights  
+4. From comparisons to individual raw scores  
+5. Collaborative score scaling  
+6. Standardizing, shifting, aggregating and squashing the scores  
+7. Conclusion
+
+---
+
+
+# 1. Introduction
+
+- Large-scale algorithms play a major political role in the digital information war — from search engines to chatbots and recommendation systems — subtly shaping public opinion and even geopolitical narratives.  
+  *(Chesney & Citron 2019; Woolley 2020; Garon 2022)*
+
+- Despite their massive influence, algorithmic information systems are still largely unregulated, opaque, and lacking in accountability — as evidenced by the Facebook Files.  
+  *(Hagey & Horwitz 2023; Hoang 2020)*
+
+---
+
+# 1.1 Problem Formulation
+
+- The goal is to define a function $f$ that transforms data inputs $(D_1, \dots, D_N)$ from $N$ user accounts into a scoring vector $\rho \in \mathbb{R}^A$ over a set of alternatives $[A] = \{1, \dots, A\}$ — ensuring that $f$ behaves well and fairly.
+
+- In a **permissionless** system, where anyone can create accounts, security risks arise. We address this with **Lipschitz resilience**, ensuring that no single user (or group using multiple accounts) can exert disproportionate influence on the outcome $\rho$.  
+  *(Allouah et al. 2022)*
+
+- Many collaborative platforms (e.g., recommendation or voting systems) fit into this framework.
+
+---
+
+# 1.2 Contributions
+
+- Introduced an end-to-end pipeline for **permissionless, secure collaborative algorithmic governance**, applied to content recommendation.
+
+- Developed new tools like **LipschiTrust** to securely propagate trust and estimate statistics under uncertainty, extending **Lipschitz resilience**.
+
+- Deployed the system on **Tournesol**, gathering 137,000+ comparisons from 7,000+ contributors across 27,000+ videos by August 2023.
+
+---
+
+# 1.3 Related Work
+
+- Tournesol addresses concerns about **disinformation, radicalization, and mental health** risks from social media — proposing content prioritization to amplify public interest content.  
+  *(Woolley 2020; Gao et al. 2020; Hoang 2021)*
+
+- It builds on prior **algorithmic governance frameworks** like WeBuildAI and preference-based voting agents, generalizing them to content recommendation with a **permissionless and secure** design.  
+  *(Lee et al. 2019; Noothigattu et al. 2018)*
+
+- Tournesol uses **trust-based identity** via peer vouching instead of Proof of Work/Stake, drawing from models like **EigenTrust** and ensuring **Lipschitz resilience** for security and fairness.  
+  *(Kamvar et al. 2003; Allouah et al. 2022)*
+
+---
+
+# 2. Interfaces and Data
+
+- Tournesol’s governance system relies on two types of input data:  
+  **(1)** contributors' **authentication data**, and  
+  **(2)** their **comparative judgments** between content items.
+
+- These inputs are essential for securing participation and extracting meaningful preferences from the crowd.
+
+---
+
+# 2.1 Vouch Network
+
+- Contributors are **pretrusted** if their email domains (e.g., `@epfl.ch`, `@who.int`) are considered **Sybil-resilient** — i.e., unlikely to allow fake or multiple accounts.
+
+- To improve inclusiveness, Tournesol introduces a **vouching system** where contributors can **vouch for others** as real persons (Proof of Personhood).
+
+- The vouch data captures who vouched for whom, when, and under what criteria — currently limited to **PoP**, but extensible to other trust types in the future.
+
+---
+
+# 2.2 Comparisons
+
+- Tournesol collects tuples $(n, a, b, q, r)$, where contributor $n$ compares alternatives $a$ and $b$ on criterion $q$, giving a rating $r \in [-R_{max}, R_{max}]$ with $R_{max} = 10$. A negative $r$ indicates preference for $a$ over $b$.
+
+- Each criterion $q$ is treated independently. Comparisons are **anti-symmetric**, and only the **most recent** comparison per pair is retained.
+
+- A contributor’s comparisons can be represented as an **anti-symmetric matrix** $r_{ab}$, with undefined entries marked as $\perp$.
+
+---
+
+# 2.3 Privacy
+
+- Tournesol allows contributors to **score content privately**, which is important when public support might pose risks (e.g., political or workplace retaliation).
+
+- Only comparisons between **publicly scored** alternatives are included in public datasets; private ones remain hidden and non-auditable.
+
+- As of August 2023, **no differential privacy** is applied — future work aims to address this limitation.  
+  *(Redberg et al. 2023)*
+  
+---
+
+# 3. Voting Rights
+
+- Tournesol assigns **permissionless, Sybil-resilient voting rights** by first **computing trust scores** based on contributors' **email verification** and **peer vouching**.
+
+- These trust scores are then used to **determine voting rights** within the governance system.
+
+---
+
+# 3.1 Trust Scores
+
+- Tournesol introduces a new algorithm, **LipschiTrust**, to assign trust scores.
+
+- LipschiTrust adapts the **EigenTrust** algorithm *(Kamvar et al., 2003)* to enhance **Sybil resilience** in a permissionless environment.
+
+---
+
+## 3.1.1 Pretrust
+
+- Contributors with verified, **Sybil-resilient email domains** (e.g., `@epfl.ch`) are assigned a **pretrust score** $\text{trust}^{\text{pre}}_n = 0.8$.
+
+- Non-pretrusted contributors receive a **pretrust score** of $0$.
+
+- The set of pretrusted contributors is denoted by $N^\text{pre}_\checkmark$.
+
+---
+
+## 3.1.2 Weighted Vouch Network
+
+- Contributors **explicitly vouch** for others in the PoP network, forming directed edges $(n, m) \in V_{\text{explicit}}$.
+
+- A **sink node** with hyperparameter $V^{\text{sink}}_\checkmark = 5$ ensures that trust distribution remains fair, even with few vouches.
+
+- The resulting **weighted vouch network** $(N, V)$ ensures that the sum of outgoing vouch weights per contributor $\leq 1$, making $V$ **row-substochastic**.
+
+
+---
+
+## 3.1.3 The Probabilistic Intuition of LipschiTrust
+
+- LipschiTrust is inspired by **EigenTrust** and **PageRank**, modeling trust as a **random walk** on the vouch network, starting from a uniformly selected pretrusted contributor.
+
+- At each step, with probability $1 - \beta$, the walker **resets**; otherwise, it **follows outgoing edges** proportionally to their weights.
+
+- To ensure **Sybil-resilience**, LipschiTrust robustifies the walk by **limiting visits** to over-influential contributors, bounding their maximum impact on trust scores.
+
+---
+
+## 3.1.4 Defining LipschiTrust
+
+- Initialize trust vector $\text{tr}_0 \equiv \text{trust}^{\text{pre}} \in \mathbb{R}^N$ based on pretrusted scores.
+
+- At each iteration $t$, update trust with:  
+  $\text{tr}_{t+\frac{1}{2}} = \text{trust}^{\text{pre}} + \beta V^T \text{tr}_t$,  
+  where $\beta \in (0,1)$ is the vouch decay parameter (Tournesol sets $\beta = 0.8$).
+
+- To prevent **power concentration**, apply **clipping**:  
+  $\text{tr}_{t+1, n} = \min\left( \text{tr}_{t+\frac{1}{2}, n}, 1 \right)$.
+
+
+---
+
+### Proposition 1
+
+There exists a unique trust vector such that $\|\text{tr}_t - \text{trust}\|_1 \leq |N|\beta^t$ for all $t$.  
+Moreover, $\text{trust} = \min(\text{trust}^{\text{pre}} + \beta V^T \text{trust}, 1)$.
+
+### Theorem 1
+
+If $\text{trust}^{-n}$ is the trust after removing contributor $n$'s vouches, then:  
+$$
+\|\text{trust} - \text{trust}^{-n}\|_1 \leq \frac{\beta}{1 - \beta} \text{trust}^{-n}_n
+$$
+
+### Proposition 2
+
+**Vouching cannot decrease trust**: for all contributors $n$,  
+$$
+\text{trust} \geq \text{trust}^{-n}
+$$
+
+### Proposition 3
+
+A contributor’s trust score is **positive** if and only if there is a **vouch path** from a pretrusted contributor to them.
+
+
+---
+
+# 3.2 Scaling-Calibration Contributors
+
+- Full pairwise scaling (as in Mehestan) is computationally expensive and noisy for contributors with few comparisons.
+
+- To improve accuracy and scalability, Tournesol selects a subset $N^\text{scaling}_\checkmark$ of **scaling-calibration contributors**: the $K_\text{scaling}$ contributors with the most comparisons and a trust score above $\text{trust}^\text{scaling}_\text{min}$.
+
+- Tournesol currently uses $K_\text{scaling} = 100$ and $\text{trust}^\text{scaling}_\text{min} = 0.1$ to prioritize comparability and efficiency.
+
+---
+
+# 3.3 Voting Rights for Score Aggregation
+
+- Even contributors with **zero trust** receive a **strictly positive voting right** $w^n_a > 0$ for alternatives they judged — but influence is limited if many low-trust contributors are involved.
+
+- **Public scorings** are favored through a **privacy penalty**: private votes are weighted by $w^{\text{penalty}}_{\text{private}} = 0.5$.
+
+- Voting rights per alternative are computed in four steps, ensuring **fairness** while controlling **security risks**.
+
+
+---
+
+## 3.3.1 Cumulative Trusted Score
+
+The total trusted score for an alternative aggregates public scorings and penalized private scorings.
+
+## 3.3.2 Maximal Tolerated Overtrust
+
+The system limits the influence of low-trust voters, setting an overtrust threshold:  
+$$\text{OverTrust}_a = w_{\times,\text{default}} + f_\times \cdot \text{trust}_a$$  
+with $w_{\times,\text{default}} = 2$ and $f_\times = 0.1$.
+
+## 3.3.3 Minimal Voting Right
+
+A minimal voting right $w^{\text{public}}_{\text{min}, a}$ is computed via dichotomic search to keep overtrust under control.
+
+## 3.3.4 Scoring Voting Rights
+
+Each contributor’s voting right is:  
+- $\max(\text{trust}_n, w^{\text{public}}_{\text{min},a})$ if public;penalized if private.
+
+---
+
+# 4 From Comparisons to Individual Raw Scores
+
+- For each contributor $n$ and quality criterion $q$, their **comparisons** $r_{ab} \in [-R_{\text{max}}, R_{\text{max}}]$ are normalized into **raw scores** $\tilde{r}_{ab} \in [-1, 1]$.
+
+- Since contributors fully control their own comparisons, **security concerns** like Lipschitz resilience are less critical at this stage.
+
+- The process focuses on **standardizing** individual judgments for further aggregation.
+
+
+---
+
+# 4.1 A Generalized Bradley-Terry Model
+
+- Tournesol models contributor preferences using a **generalized Bradley-Terry model**: each alternative $a$ has an implicit true score $\theta^{\text{true}}_a$.
+
+- The probability of preferring $a$ over $b$ depends on the score difference $\theta^{\text{true}}_{ab} = \theta^{\text{true}}_a - \theta^{\text{true}}_b$ through a specific probabilistic formula.
+
+- The raw scores $\theta^{\text{raw}}(r)$ are computed via **Bayesian MAP estimation** with strong convexity guarantees, ensuring **monotonicity** with respect to comparisons.
+
+
+---
+
+## Proposition 4: Monotonicity of Raw Scores
+
+The raw scores $\theta^{\text{raw}}(\tilde{r})$ are **monotonic** with respect to the contributor's comparisons:  
+better comparisons for $a$ lead to higher $\theta^{\text{raw}}_a$.
+
+## Computing Uncertainty
+
+- To estimate score **uncertainty**, Tournesol evaluates the **curvature** of the loss around $\theta^{\text{raw}}$.
+
+- Specifically, it computes the second derivative (Hessian diagonal ignoring regularization):  
+  $$
+  \Delta \theta^{\text{raw}}_a = \left( - \sum_{b : (a,b) \in AB} \frac{\partial^2}{\partial \theta_a^2} \ln p[r_{ab}|\theta^{\text{raw}}] \right)^{-1/2}
+  $$
+
+- Higher uncertainty reduces a contributor's influence on aggregated global scores.
+
+---
+
+# 5 Collaborative Score Scaling
+
+- Contributors may use **different implicit scoring scales**, especially when assessing different subsets of alternatives (e.g., top vs. bad content).
+
+- To ensure fair aggregation, contributors' scores must be **collaboratively scaled** to a common reference.
+
+- Tournesol adapts **Mehestan** (Allouah et al., 2022) for secure, permissionless score scaling, with additional modifications tailored to its platform.
+
+
+---
+
+# 5.1 Overview of Mehestan
+
+- Mehestan transforms raw scores $\theta^{\text{raw}}_{n,a}(r)$ into **collaboratively scaled scores** $\theta^{\text{cs}}_{n,a}(r)$ on a common scale.
+
+- It involves three steps:  
+  (i) **Individual normalization** of each contributor’s scores,  
+  (ii) **Scaling** scores against others' scores using **Lipschitz-resilient methods**,  
+  (iii) **Translation** (shifting) of scores to align contributors.
+
+- The algorithm’s resilience is controlled by parameter $L$; Tournesol uses $L = 1/10$.
+
+---
+
+# 6 Standardizing, Shifting, Aggregating and Squashing
+
+- After collaborative scaling, scores undergo further **standardization, shifting, aggregation, and squashing** to ensure **human-readability** and **consistency** with unrated alternatives.
+
+- Some steps use a new **Lipschitz-resilient primitive** called **QrQtl**, designed for robust quantile estimation.
+
+- These adjustments refine the scores before final display and aggregation on the platform.
+
+---
+
+## 6.1 Standardizing the Scores
+
+Collaboratively scaled scores are **standardized** using a Lipschitz-resilient **90%-quantile (QrQtl)** of deviations to control heavy tails.
+
+## 6.2 Shifting the Zero
+
+The zero point is shifted so that **unrated alternatives** fall into the **bottom 15%** ($q_{\text{shift}}^{\text{zero}} = 15\%$), improving interpretability.
+
+## 6.3 Aggregating into Global Scores
+
+Global scores $\rho^{\text{sss}}_a$ are computed by **aggregating** contributors' shifted scores $\theta^{\text{sss}}_{n,a}$ using a **robust median (QrMed)** with Lipschitz resilience $L$.
+
+## 6.4 Squashing for Display
+
+Scores are **squashed** into the bounded interval $(-100, 100)$ using the mapping:  $$x \mapsto 100 \frac{x}{\sqrt{1+x^2}}$$
+These are the scores displayed on Tournesol.
+
+---
+
+# 7 Conclusion
+
+- We presented an **open-source, permissionless, secure collaborative governance system**, deployed at **tournesol.app**.
+
+- Our pipeline is **functional** but **open to improvements** in areas such as:  
+  - Handling direct assessments (e.g., likes),  
+  - Learning volitions,  
+  - Leveraging expertise and liquid democracy,  
+  - Enhancing active learning and collaborative filtering,  
+  - Aligning language models via Tournesol.
+
+- We aim to inspire more **effective, fair, scalable, and interpretable algorithmic governance**.
+
+
+
+
+
+
+
