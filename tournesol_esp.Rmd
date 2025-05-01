@@ -21,7 +21,7 @@ fontsize: 11pt
 
 # Contenido
 
-1. Introducción  :) 
+1. Introducción 
 2. Interfaces y datos  
 3. Derechos de voto  
 4. De comparaciones a puntuaciones individuales  
@@ -105,86 +105,174 @@ fontsize: 11pt
 
 # 3. Derechos de voto
 
-- Se asignan derechos de voto usando **puntajes de confianza** basados en avales y verificaciones.
+- El objetivo es asignar puntuaciones de confianza ("trust scores"). Estas puntuaciones definen quién tiene derecho a votar en Tournesol. 
 
-- La metodología asegura resistencia a ataques tipo **Sybil**.
-
----
-
-# 3.1 Cómputo de confianza: LipschiTrust
-
-- Inspirado en **EigenTrust** y **PageRank**: modela caminatas aleatorias sobre la red de avales.
-
-- Reseteo frecuente y limitación de visitas evitan acumulación de poder.
+- Para lograrlo combina:
+  - Verificación por email confiable (pretrust).
+  - Avales sociales (vouching).
+  - Difusión probabilística de confianza (LipschiTrust).
 
 ---
 
-### Proposition 1
+# 3.1 Trust scores
 
-There exists a unique trust vector such that $\|\text{tr}_t - \text{trust}\|_1 \leq |N|\beta^t$ for all $t$.  
-Moreover, $\text{trust} = \min(\text{trust}^{\text{pre}} + \beta V^T \text{trust}, 1)$.
+**Paso 1: Verificación por email confiable**
 
-### Theorem 1
+- Cada usuario empieza con:
+  - `trust_pre = 0.8` si tiene email confiable  
+  - `trust_pre = 0` si no
+  
+- Ejemplo: danifuentes@colmex.mx vs. dani1997@gmail.com
 
-If $\text{trust}^{-n}$ is the trust after removing contributor $n$'s vouches, then:  
-$$
-\|\text{trust} - \text{trust}^{-n}\|_1 \leq \frac{\beta}{1 - \beta} \text{trust}^{-n}_n
-$$
-
-### Proposition 2
-
-**Vouching cannot decrease trust**: for all contributors $n$,  
-$$
-\text{trust} \geq \text{trust}^{-n}
-$$
-
-### Proposition 3
-
-A contributor’s trust score is **positive** if and only if there is a **vouch path** from a pretrusted contributor to them.
+- Define un **núcleo confiable** para propagar confianza. Sin estar en este grupo, sólo puedes ganar confianza si alguien te avala.
 
 ---
 
-# 3.2 Contribuyentes calibradores
+# 3.1 Trust scores
 
-- Se selecciona un subconjunto activo y confiable para calibrar escalas de puntuación.
+**Paso 2: Avales sociales ponderados**
 
-- **$K_{\text{scaling}} = 100$**, **$\text{trust}^{\text{scaling}}_{\min} = 0.1$**.
+- Los usuarios pueden **avalar (vouch)** a otros. Es una forma de decir: "confío en esta persona".
+- Pero avalar a muchos **diluye tu confianza**: cada aval vale menos.
 
----
+- Fórmula del peso de un aval:
 
-# 3.3 Derechos de voto en agregación
+\[
+V_{nm} = \frac{1}{\text{\# avales explícitos} + 5}
+\]
 
-- Incluso usuarios con confianza cero tienen voto positivo \( w^n_a > 0 \).
+- También todos avalan implícitamente a un "sumidero" para evitar abusos.
 
-- Penalización por respuestas privadas: \( w^{\text{penalty}}_{\text{private}} = 0.5 \).
+- Ejemplo: Si una persona avala a 3, cada aval vale: $\frac{1}{3 + 5} = \frac{1}{8}$.  
+  Si avala a 10, cada aval vale: $\frac{1}{10 + 5} = \frac{1}{15}$.
 
-- Se controla "sobreconfianza" \( \text{OverTrust}_a \) mediante umbrales.
-
----
-
-# 4 De comparaciones a puntuaciones individuales
-
-- Se normalizan comparaciones en **scores crudos** \( \tilde{r}_{ab} \in [-1,1] \).
-
-- Se modela mediante un **modelo generalizado Bradley-Terry**.
+Así se **desincentiva regalar confianza sin criterio.**
 
 ---
 
-## Proposition 4: Monotonicity of Raw Scores
+# 3.1 Trust scores
 
-The raw scores $\theta^{\text{raw}}(\tilde{r})$ are **monotonic** with respect to the contributor's comparisons:  
-better comparisons for $a$ lead to higher $\theta^{\text{raw}}_a$.
+**Paso 3: LipschiTrust – difusión de confianza**
 
-## Computing Uncertainty
+- Se inspira en el algoritmo PageRank.
+- Imagina una pelotita (random walker) que:
 
-- To estimate score **uncertainty**, Tournesol evaluates the **curvature** of the loss around $\theta^{\text{raw}}$.
+  - Con probabilidad 0.8, **reinicia** desde alguien confiable (pretrust).
+  - Con probabilidad 0.2, **salta** a una persona avalada por el nodo actual.
 
-- Specifically, it computes the second derivative (Hessian diagonal ignoring regularization):  
-  $$
-  \Delta \theta^{\text{raw}}_a = \left( - \sum_{b : (a,b) \in AB} \frac{\partial^2}{\partial \theta_a^2} \ln p[r_{ab}|\theta^{\text{raw}}] \right)^{-1/2}
-  $$
+- La cantidad de veces que la pelotita te visita → determina tu **trust score**.
 
-- Higher uncertainty reduces a contributor's influence on aggregated global scores.
+- Intuición
+  - La pelotita nunca se queda atrapada en una isla de cuentas falsas.  
+  - Siempre puede volver al mundo confiable.
+
+---
+
+# 3.1 Trust scores
+
+**Paso 4: Solidez matemática- Proposiciones**
+
+##
+
+| Proposición                        | Fórmula                                                     | Intuición                                                                    |
+|------------------------------------|-------------------------------------------------------------|------------------------------------------------------------------------------|
+| Convergencia                 | El sistema iterativo siempre converge a un único vector `trust`. | El algoritmo es **estable**: llega a un resultado claro.             |
+| No penalización              | $trust \geq trust^{-n}$                                     | **Avalar no te perjudica**. Puedes dar confianza sin perder la tuya.  |
+| Requiere conectividad        | $trust_n > 0$ solo si hay camino a alguien *pretrust* | Si estás **aislado**, no puedes obtener confianza.                        |
+
+---
+
+# 3.1 Trust scores
+
+**Paso 4: Solidez matemática- Teorema**  
+
+## 
+
+| Teorema                            | Fórmula                                                     | Intuición                                                                    |
+|------------------------------------|-------------------------------------------------------------|------------------------------------------------------------------------------|
+| Resiliencia | $\|\text{trust} - \text{trust}^{-n}\|_1 \leq \dfrac{\beta}{1 - \beta} \cdot \text{trust}_n$ | Si eliminas a un usuario `n`, el cambio en el sistema es **limitado**. |
+
+
+---
+
+# 3.2 Scaling-Calibration Contributors
+
+- Comparar todas las votaciones entre todos los usuarios (full pairwise scaling) es **costoso** computacionalmente y **poco confiable** si el usuario ha hecho pocas comparaciones
+
+- Intuición:
+  - No todos los juicios valen igual para calibrar. 
+  - El sistema confía más en quienes han participado mucho y han demostrado ser confiables.
+
+---
+
+# 3.2 Scaling-Calibration Contributors
+
+- Tournesol selecciona un **subconjunto confiable de personas** que servirán como "regla" para calibrar los puntajes. Si el usuario pertenece al subgrupo se le asigna un peso especial. Su opinión cuenta más para calibrar niveles de calidad. 
+
+## Selección de calibradores confiables
+
+- Tournesol define un subconjunto:
+
+\[
+N^\text{scaling}_\checkmark = \text{Top } K_\text{scaling} \text{ con } \text{trust}_n \geq \text{trust}^\text{scaling}_\text{min}
+\]
+
+- Parámetros usados actualmente:
+  - \( K_\text{scaling} = 100 \)
+  - \( \text{trust}^\text{scaling}_\text{min} = 0.1 \)
+
+---
+
+# 3.3 Voting Rights for Score Aggregation
+
+
+- El trust score no se usa directamente como peso de voto. En cambio, se define un sistema más flexible:
+
+- Todo usuario que haya juzgado una alternativa recibe un derecho de voto positivo:
+
+\[
+w^n_a > 0
+\]
+
+- Incluso si el usuario tiene confianza igual a cero, su voto cuenta pero con **bajo peso**.
+  
+## Se favorece la transparencia
+
+- Las votaciones privadas reciben una penalización:
+
+\[
+w^{\text{penalty}}_{\text{private}} = 0.5
+\]
+
+
+---
+
+# 4. From comparisons to individual raw scores
+
+- Cada contribuyente compara pares de alternativas con juicios $r_{ab} \in [-R_{\text{max}}, R_{\text{max}}]$.
+
+- Estas comparaciones se normalizan a $\tilde{r}_{ab} \in [-1, 1]$, lo que permite estandarizar los juicios individuales.
+
+---
+
+# 4.1 Generalized Bradley-Terry model
+
+- Tournesol modela las preferencias de los usuarios con un modelo probabilístico basado en comparaciones por pares.
+
+    - Cada alternativa $a$ tiene un **puntaje oculto** o implícito $\theta_a$.
+
+    - Al comparar $a$ contra $b$, se estima la diferencia $\theta_a - \theta_b$,  
+  y esta se convierte en una **probabilidad de preferencia**.
+
+- Por ende, el modelo de **Bradley-Terry** supone que cada opción tiene un **puntaje escondido**. Si comparas dos alternativas, la que tiene el puntaje más alto es la que probablemente vas a elegir. Cuanto más grande es la diferencia entre los dos, más clara es tu preferencia.
+
+---
+
+# 4.2 Uncertainty
+
+- Desconfianza: Si un usuario ha hecho pocas comparaciones, son contradictorias o poco claras. 
+- Al medir la curvatura de la función de pérdida (la segunda derivada), encuentran que: más curvada = más confianza; y también más plana = más incertidumbre.
+- Si hay más incertidumbre, Tournesol **reduce el peso de los votos**.
 
 ---
 
