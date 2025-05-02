@@ -295,6 +295,24 @@ w^{\text{penalty}}_{\text{private}} = 0.5
 - Usuarios califican diferentes subconjuntos: necesidad de **escalar colaborativamente**.
 
 - Uso adaptado de **Mehestan** (Allouah et al. 2022) con robustecimientos.
+ 
+    - Normalización individual (omitida en Tournesol).
+
+    - Escalamiento relativo entre contribuyentes.
+
+    - Ajuste por traslación.
+
+---
+
+# 5.1 Adaptaciones en Tournesol:
+
+- Solo usa evaluadores de calibración.
+
+- Estimadores robustos (cuantiles).
+
+- Incorpora incertidumbre.
+
+- Propone penalizar contenido polarizante.
 
 ---
 
@@ -325,3 +343,69 @@ w^{\text{penalty}}_{\text{private}} = 0.5
 - Futuras mejoras incluyen: aprendizaje de voluntades, integración de expertise, liquid democracy y alineación de modelos de lenguaje.
 
 - Buscamos fomentar sistemas **justos, interpretables y escalables**.
+
+---
+
+# 8 Comentarios
+
+- Un nuevo modelo de gobernanza algorítmica
+
+El proyecto Tournesol propone una alternativa democrática y descentralizada sobre los algoritmos de recomendación
+
+- Seguridad sin elitismo
+
+Es posible garantizar seguridad frente a cuentas falsas (Sybil attacks)
+
+    - Sistema de confianza distribuida
+    
+    - Nadie pueda tener una influencia desproporcionada
+
+---
+
+# 8.1 Comentarios
+
+- Colaboración interdisciplinaria
+
+La tecnología puede ser diseñada éticamente con bases matemáticas y sociales sólidas
+
+    - Teoría de elección social (modelos de votación)
+    
+    - Aprendizaje automático
+    
+    - Estadística robusta y Lipschitz-resiliencia
+
+- Potencial de impacto global (Es solo el comienzo)
+
+Tournesol no es solo un sistema técnico, sino una propuesta para reorganizar cómo decidimos colectivamente (infraestructura social para la era digital)
+
+---
+
+# 8.2 Comentarios
+
+- Tournesol encarna una visión ética y técnica de la inteligencia colectiva
+
+Lograr que la recomendación de contenido en internet no sea un instrumento de manipulación, sino una herramienta pública para el bien común.
+
+---
+
+# 9 Relación con la Microeconomía
+
+- Preferencias individuales (Fundamentos micro)
+
+Los usuarios comparan pares de alternativas (videos) según criterios de calidad (análogo a función de utilidad)
+
+- Agregación de preferencias (Elección social)
+
+Mecanismos de agregación de preferencias, con preocupación por la equidad y la resiliencia 
+
+---
+
+# 9 Relación con la Microeconomía
+
+- Diseño de mecanismos (Economía de la información)
+
+Tournesol aplica principios de diseño de mecanismos con restricciones de información incompleta y seguridad
+
+- Asignación de derechos de voto (Recursos y equidad)
+
+Se trata de una forma de ponderar agentes en un entorno estratégico
