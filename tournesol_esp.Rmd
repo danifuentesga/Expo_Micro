@@ -33,73 +33,89 @@ fontsize: 11pt
 
 # 1. Introducción
 
-- Los algoritmos de gran escala tienen un papel político crucial, moldeando narrativas públicas y geopolíticas.  
-*(Chesney & Citron 2019; Woolley 2020; Garon 2022)*
+- Los algoritmos a gran escala desempeñan un papel político importante en la guerra digital de la información — desde los motores de búsqueda hasta los chatbots y los sistemas de recomendación — moldeando sutilmente la opinión pública e incluso las narrativas geopolíticas.  
+  *(Chesney & Citron 2019; Woolley 2020; Garon 2022)*
 
-- Sin embargo, estos sistemas carecen de regulación y transparencia.  
-*(Hagey & Horwitz 2023; Hoang 2020)*
+- A pesar de su enorme influencia, los sistemas algorítmicos de información siguen estando en gran medida sin regulación, son opacos y carecen de mecanismos de rendición de cuentas — como lo demuestran los Facebook Files.  
+  *(Hagey & Horwitz 2023; Hoang 2020)*
+
 
 ---
 
 # 1.1 Formulación del problema
 
-- Queremos definir una función $f$ que transforme los datos de $N$ cuentas en una puntuación \( \rho \) sobre un conjunto de alternativas.
+- El objetivo es definir una función $f$ que transforme entradas de datos $(D_1, \dots, D_N)$ de $N$ cuentas de usuario en un vector de puntuación $\rho \in \mathbb{R}^A$ sobre un conjunto de alternativas $\[A] = \{1, \dots, A\}$ — asegurando que $f$ se comporte de manera correcta y justa.
 
-- En sistemas **abiertos**, el reto es evitar que usuarios maliciosos manipulen el resultado.  
-**Solución**: **Resiliencia Lipschitz**. *(Allouah et al. 2022)*
+- En un sistema **sin permisos** (*permissionless*), donde cualquiera puede crear cuentas, surgen riesgos de seguridad. Abordamos esto con la **resiliencia de Lipschitz**, asegurando que ningún usuario (o grupo usando múltiples cuentas) pueda ejercer una influencia desproporcionada en el resultado $\rho$.  
+  *(Allouah et al., 2022)*
+
+- Muchas plataformas colaborativas (por ejemplo, sistemas de recomendación o votación) encajan dentro de este marco.
+
 
 ---
 
 # 1.2 Contribuciones
 
-- Propuesta de un pipeline seguro y colaborativo para gobernanza algorítmica sin permisos.
+- Se introdujo una canalización de extremo a extremo para una **gobernanza algorítmica colaborativa, segura y sin permisos**, aplicada a la recomendación de contenido.
 
-- Introducción de **LipschiTrust** para propagar confianza de forma segura.
+- Se desarrollaron nuevas herramientas como **LipschiTrust** para propagar de manera segura la confianza y estimar estadísticas bajo incertidumbre, extendiendo la **resiliencia de Lipschitz**.
 
-- Despliegue exitoso en **tournesol.app** (137,000 comparaciones, 7,000 contribuyentes).
+- Se desplegó el sistema en **Tournesol**, recopilando más de 137,000 comparaciones de más de 7,000 colaboradores en más de 27,000 videos hasta agosto de 2023.
 
 ---
 
 # 1.3 Trabajo relacionado
 
-- Tournesol combate riesgos de **desinformación**, **radicalización** y **salud mental** en redes sociales.
+- **Tournesol** aborda preocupaciones sobre los riesgos de **desinformación, radicalización y salud mental** provenientes de las redes sociales — proponiendo la priorización de contenido para amplificar el contenido de interés público.  
+  *(Woolley 2020; Gao et al. 2020; Hoang 2021)*
 
-- Extiende trabajos como **WeBuildAI** y **EigenTrust**, aplicados a recomendaciones seguras y colaborativas.  
-*(Lee et al. 2019; Kamvar et al. 2003)*
+- Se basa en marcos previos de **gobernanza algorítmica** como WeBuildAI y agentes de votación basados en preferencias, generalizándolos a la recomendación de contenido con un diseño **sin permisos y seguro**.  
+  *(Lee et al. 2019; Noothigattu et al. 2018)*
+
+- **Tournesol** utiliza **identidad basada en la confianza** a través de validación entre pares en lugar de Prueba de Trabajo/Participación, tomando como referencia modelos como **EigenTrust** y asegurando **resiliencia de Lipschitz** para garantizar seguridad y equidad.  
+  *(Kamvar et al. 2003; Allouah et al. 2022)*
+
 
 ---
 
 # 2. Interfaces y datos
 
-- Se recopilan dos tipos de datos:  
-  **(1)** Verificación/autenticación de usuarios.  
-  **(2)** Comparaciones de contenido.
+- El sistema de gobernanza de **Tournesol** se basa en dos tipos de datos de entrada:  
+  **(1)** los **datos de autenticación** de los contribuyentes, y  
+  **(2)** sus **juicios comparativos** entre elementos de contenido.
+
+- Estas entradas son esenciales para asegurar la participación y extraer preferencias significativas de la multitud.
 
 ---
 
 # 2.1 Red de avales (Vouch Network)
 
-- Se asigna **preconfianza** si el correo pertenece a un dominio "resiliente" (ej., `@epfl.ch`).
+- Los contribuyentes son **preconfiables** si sus dominios de correo electrónico (por ejemplo, `@epfl.ch`, `@who.int`) se consideran **resilientes a Sybil** — es decir, poco probables de permitir cuentas falsas o múltiples.
 
-- Los usuarios pueden **avalar** a otros para aumentar inclusión (**Proof of Personhood**).
+- Para mejorar la inclusividad, **Tournesol** introduce un **sistema de aval** donde los contribuyentes pueden **avalar a otros** como personas reales (Prueba de Identidad - *Proof of Personhood*).
+
+- Los datos de aval capturan quién avaló a quién, cuándo y bajo qué criterios — actualmente limitado a **PoP**, pero extensible a otros tipos de confianza en el futuro.
 
 ---
 
 # 2.2 Comparaciones
 
-- Se registran tuplas \((n,a,b,q,r)\), donde $r$ mide la preferencia entre $a$ y $b$.
+- **Tournesol** recopila tuplas $(n, a, b, q, r)$, donde el contribuyente $n$ compara las alternativas $a$ y $b$ según el criterio $q$, dando una calificación $r \in [-R_{\text{max}}, R_{\text{max}}]$ con $R_{\text{max}} = 10$. Un $r$ negativo indica preferencia por $a$ sobre $b$.
 
-- Las comparaciones son **anti-simétricas** y se representa en una matriz \( r_{ab} \).
+- Cada criterio $q$ se trata de forma independiente. Las comparaciones son **antisimétricas**, y solo se conserva la comparación **más reciente** por par.
+
+- Las comparaciones de un contribuyente pueden representarse como una **matriz antisimétrica** $r_{ab}$, con entradas no definidas marcadas como $\perp$.
 
 ---
 
 # 2.3 Privacidad
 
-- Se permite votar **privadamente**.
+- **Tournesol** permite a los contribuyentes **calificar contenido de forma privada**, lo cual es importante cuando el apoyo público podría implicar riesgos (por ejemplo, represalias políticas o laborales).
 
-- Solo las comparaciones **públicas** forman parte de los datasets accesibles.
+- Solo se incluyen en los conjuntos de datos públicos las comparaciones entre alternativas **puntuadas públicamente**; las privadas permanecen ocultas y no auditables.
 
-- Actualmente, **no se aplica privacidad diferencial** *(agosto 2023)*.
+- Hasta agosto de 2023, **no se aplica privacidad diferencial** — trabajos futuros tienen como objetivo abordar esta limitación.  
+  *(Redberg et al., 2023)*
 
 ---
 
