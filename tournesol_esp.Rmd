@@ -17,8 +17,6 @@ navigation: horizontal
 fontsize: 11pt
 ---
 
----
-
 # Contenido
 
 1. Introducción 
@@ -44,7 +42,7 @@ fontsize: 11pt
 
 # 1.1 Formulación del problema
 
-- El objetivo es definir una función $f$ que transforme entradas de datos $(D_1, \dots, D_N)$ de $N$ cuentas de usuario en un vector de puntuación $\rho \in \mathbb{R}^A$ sobre un conjunto de alternativas $\[A] = \{1, \dots, A\}$ — asegurando que $f$ se comporte de manera correcta y justa.
+- El objetivo es definir una función $f$ que transforme entradas de datos $(D_1, \dots, D_N)$ de $N$ cuentas de usuario en un vector de puntuación $\rho \in \mathbb{R}^A$ sobre un conjunto de alternativas $A = \{1, \dots, A\}$ — asegurando que $f$ se comporte de manera correcta y justa.
 
 - En un sistema **sin permisos** (*permissionless*), donde cualquiera puede crear cuentas, surgen riesgos de seguridad. Abordamos esto con la **resiliencia de Lipschitz**, asegurando que ningún usuario (o grupo usando múltiples cuentas) pueda ejercer una influencia desproporcionada en el resultado $\rho$.  
   *(Allouah et al., 2022)*
